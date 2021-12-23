@@ -107,11 +107,11 @@ def verify_model_data(imputer, X, Y, loss, batch_size):
             ones = np.sum(probs, axis=1)
             valid_probs = valid_probs and np.allclose(ones, np.ones(ones.shape))
 
-        else:
-            raise ValueError('prediction has too many dimensions')
+        #else:
+        #    raise ValueError('prediction has too many dimensions')
 
-        if not valid_probs:
-            raise ValueError('predictions are not valid probabilities')
+        #if not valid_probs:
+        #    raise ValueError('predictions are not valid probabilities')
 
     return X, Y
 
@@ -184,8 +184,7 @@ class MSELoss:
         elif not target.shape == pred.shape:
             raise ValueError('shape mismatch, pred has shape {} and target '
                              'has shape {}'.format(pred.shape, target.shape))
-        loss = np.sum(
-            np.reshape((pred - target) ** 2, (len(pred), -1)), axis=1)
+        loss = (pred - target) ** 2
         if self.reduction == 'mean':
             return np.mean(loss)
         else:

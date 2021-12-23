@@ -26,6 +26,7 @@ class PermutationEstimator:
                  n_permutations=None,
                  min_coalition=0.0,
                  max_coalition=1.0,
+                 size_ensemble=1,
                  verbose=False,
                  bar=True):
         '''
@@ -41,6 +42,7 @@ class PermutationEstimator:
           n_permutations: number of permutations to unroll.
           min_coalition: minimum coalition size (int or float).
           max_coalition: maximum coalition size (int or float).
+          size_ensemble: number of models explained in parallel (default 1)
           verbose: print progress messages.
           bar: display progress bar.
 
@@ -99,7 +101,11 @@ class PermutationEstimator:
 
         # Setup.
         arange = np.arange(batch_size)
-        scores = np.zeros((batch_size, num_features))
+        # Single or Multiple Outputs
+        if size_ensemble > 1:
+            scores = np.zeros((batch_size, num_features, size_ensemble))
+        else:
+            scores = np.zeros((batch_size, num_features))
         S = np.zeros((batch_size, num_features), dtype=bool)
         permutations = np.tile(np.arange(num_features), (batch_size, 1))
         tracker = utils.ImportanceTracker()
@@ -156,9 +162,9 @@ class PermutationEstimator:
             tracker.update(scores, sample_counts)
 
             # Calculate progress.
-            std = np.max(tracker.std)
-            gap = max(tracker.values.max() - tracker.values.min(), 1e-12)
-            ratio = std / gap
+            std = np.max(tracker.std, 0)
+            gap = np.max(tracker.values.max(0) - tracker.values.min(0))
+            ratio = np.max(std / (gap+1e-16))
 
             # Print progress message.
             if verbose:
